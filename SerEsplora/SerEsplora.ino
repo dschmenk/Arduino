@@ -45,15 +45,15 @@ void loop()
           case 'J': // Read joystick
           case 'j':
             Serial.print(Esplora.readJoystickX());Serial.print(",");
-            Serial.print(Esplora.readJoystickY());Serial.print(",");
-            Serial.println(Esplora.readJoystickSwitch());
+            Serial.println(Esplora.readJoystickY());
             break;
           case 'B': // Read button pad
           case 'b':
             Serial.print(Esplora.readButton(1));Serial.print(",");
             Serial.print(Esplora.readButton(2));Serial.print(",");
             Serial.print(Esplora.readButton(3));Serial.print(",");
-            Serial.println(Esplora.readButton(4));
+            Serial.print(Esplora.readButton(4));Serial.print(",");
+            Serial.println(Esplora.readJoystickSwitch());
             break;
           case 'P': // Read potentiometer
           case 'p':
