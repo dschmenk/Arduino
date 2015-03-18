@@ -1,28 +1,47 @@
+package Esplora;
+import processing.core.*;
 import processing.serial.*;
 
-class Esplora
+public class EsploraLibrary
 {
-  Serial _port;
+  PApplet parent;
+  Serial _port = null;
 
-  void open()
+  public EsploraLibrary(PApplet parent)
   {
-    String portName = Serial.list()[Serial.list().len() - 1]; # Pick last serial port in list
+    this.parent = parent;
+    parent.registerMethod("dispose", this);
+    String portName = Serial.list()[Serial.list().len() - 1]; // Pick last serial port in list
+    _port = new Serial(this, portName, 57600);
+    _port.clear();
+  }
+
+  public void dispose()
+  {
+    if (_port != null
+      _port.close();
+  }
+
+  public static void open()
+  {
+    String portName = Serial.list()[Serial.list().len() - 1]; // Pick last serial port in list
     _port = new Serial(this, portName, 57600);
     _port.clear();
   }
   
-  int close()
+  public static int close()
   {
-    return _port.close();
+    _port.close();
+    _port = null;
   }
   
-  String readLine(timeout=1000)
+  public static String readLine()
   {
     String serstr = null;
     while (serstr == null) {
       m = millis();
       while (_port.available() == 0) {
-        if ((millis() - m) > timeout)
+        if ((millis() - m) > 1000)
           return "";
       }
       serstr = _port.readStringUntil(10);
@@ -30,101 +49,104 @@ class Esplora
     return serstr.strip();
   } 
   
-  int readDigital(int pin)
+  public static int readDigital(int pin)
   {
-      _port.write("=D%d\n" % pin);
+      _port.write("=D" + pin + "\n");
       return int(readLine());
   }
   
-  int readAnalog(pin)
+  public static int readAnalog(int pin)
   {
-      _port.write("=A%d\n" % pin)
+      _port.write("=A%d\n" % pin);
       return int(readLine());
   }
 
-  void writeDigital(pin, value)
+  public static void writeDigital(int pin, int value)
   {
     if (value)
       value = 255;
-    _port.write("D%d=%d\n" % (pin, value))
+    _port.write("D" + pin + "=" + value + "\n");
   }
 
-  void writePwm(pin, value)
+  public static void writePwm(int pin, int value)
   {
-    _port.write("D%d~%d\n" % (pin, value));
+    _port.write("D" + pin + "=" + value + + "\n");
   }
 
-  void writeRGB(red, green = -1, blue = -1)
+  public static void writeRGB(int red, int green, int blue)
   {
-    if (green < 0:\)
-      green = red;
-    if (blue < 0)
-      blue = red;
-    _port.write("L=%d,%d,%d\n" % (red, green, blue));
+    _port.write("L=" + red + "," + green + "," + blue + "\n");
+  }
+
+  public static void writeRGB(int brightness)
+  {
+    _port.write("L=" + brightness + "," + brightness + "," + brightness + "\n");
   }
   
-  void writeBuzzer(hertz = 0, duration = -1)
+  public static void writeBuzzer(int hertz)
   {
-    if (duration < 0)
-      _port.write("T=%d\n" % hertz);
-    else
-      _port.write("T=%d,%d\n" % (hertz, duration));
+    _port.write("T=" + hertz + "\n");
   }
   
-  int[] readJoystick()
+  public static void writeBuzzer(int hertz, int duration)
+  {
+    _port.write("T=" + hertz + "," + duration + "\n");
+  }
+  
+  public static int[] readJoystick()
   {
     String[] instr;
     
     _port.write("=J\n");
     instr = readLine().split(',');
-    return [-int(instr[0]), int(instr[1])];
+    return new int[] {-int(instr[0]), int(instr[1])};
   }
 
-  int[] readAccelerometer()
+  public static int[] readAccelerometer()
   {
     String[] instr;
 
     _port.write("=X\n");
     instr = readLine().split(',');
-    return [int(instr[0]), int(instr[1]), int(instr[2])];
+    return new int[] {int(instr[0]), int(instr[1]), int(instr[2])};
   }
 
-  int[] readButtons()
+  public static int[] readButtons()
   {
     String[] instr;
     
     _port.write("=B\n");
     instr = Esplora.readLine().split(',');
-    return [int(instr[0]), int(instr[1]), int(instr[2]), int(instr[3]), int(instr[4])];
+    return new int[] {int(instr[0]), int(instr[1]), int(instr[2]), int(instr[3]), int(instr[4])};
   }
 
-  int readPotentiometer()
+  public static int readPotentiometer()
   {
     _port.write("=P\n");
     return int(readLine());
   }
 
-  int readLightSensor()
+  public static int readLightSensor()
   {
     _port.write("=L\n");
     return int(readLine());
   }
   
-  int readMicrophone()
+  public static int readMicrophone()
   {
     _port.write("=M\n");
     return int(readLine());
   }
   
-  int readTempC()
+  public static int readTempC()
   {
     _port.write("=C\n");
     return int(readLine());
   }
   
-  int readTempF()
+  public static int readTempF()
   {
     _port.write("=F\n");
-    return int(Esplora.readLine());
+    return int(readLine());
   }
 }

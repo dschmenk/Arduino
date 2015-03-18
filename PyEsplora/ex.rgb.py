@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from Tkinter import *
-from esplora import *
+from Esplora import *
 
 def draw():
     joystick = Esplora.readJoystick()

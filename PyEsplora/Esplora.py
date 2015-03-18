@@ -1,10 +1,15 @@
 import serial
+import serial.tools.list_ports
 
 class Esplora:
     _port = {}
 
     @staticmethod
-    def open(portname = "/dev/tty.usbmodem411"):
+    def open(portname = ""):
+        if portname == "":
+            ports = serial.tools.list_ports.comports()
+            portname = ports[len(ports)-1][0]
+        print portname
         Esplora._port = serial.Serial(portname, 57600, timeout = 1)
     
     @staticmethod
