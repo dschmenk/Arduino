@@ -11,7 +11,7 @@ def ledToggle(event):
     Esplora.writeDigital(13, led)
     
 def draw():
-    angle = (1023 - Esplora.readPotentiometer())/2.84
+    angle = (1023 - Esplora.readSlider())/2.84
     if angle > 359:
         angle = 359
     canvas.itemconfig(ovalSpin, extent=angle)
