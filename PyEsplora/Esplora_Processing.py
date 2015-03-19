@@ -7,7 +7,7 @@ class Esplora:
         Esplora._port = Serial(this, portName, 57600)
         Esplora._port.clear()
         Esplora._port.write("!\n")
-        Esplora._port.readline(5000)
+        Esplora.readLine(5000)
 
     @staticmethod
     def close():
@@ -103,7 +103,7 @@ class Esplora:
         return int(Esplora.readLine())
 
     @staticmethod
-    def tftSize()
+    def tftSize():
         Esplora._port.write("=Z\n")
         instr = Esplora._port.readline().rstrip().split(",")
         return [int(instr[0]), int(instr[1])]
