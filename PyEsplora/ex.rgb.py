@@ -5,7 +5,7 @@ from Esplora import *
 
 def draw():
     joystick = Esplora.readJoystick()
-    pot      = Esplora.readPotentiometer()
+    pot      = Esplora.readSlider()
     red   = (joystick[0] + 512) / 4
     green = (joystick[1] + 512) / 4
     blue  = pot / 4

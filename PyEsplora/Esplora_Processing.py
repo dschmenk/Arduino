@@ -2,8 +2,11 @@ class Esplora:
     _port = {}
 
     @staticmethod
-    def open(Serial):
-        portName = Serial.list()[len(Serial.list()) - 1] # Pick last serial port in list
+    def open(Serial, index=-1):
+        if index < 0:
+            portName = Serial.list()[len(Serial.list()) + index] # Pick from last serial port in list
+        else:
+            portName = Serial.list()[index] # Pick from serial port in list
         Esplora._port = Serial(this, portName, 57600)
         Esplora._port.clear()
         Esplora._port.write("!\n")
