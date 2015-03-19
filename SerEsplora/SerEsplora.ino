@@ -1,4 +1,6 @@
 #include <Esplora.h>
+#include <TFT.h>
+#include <SPI.h>
 
 /*
  One time initialization.
@@ -10,17 +12,43 @@ void setup()
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
+  // initialize TFT screen
+  EsploraTFT.begin();
+}
+
+void readRGB(byte *red, byte *green, byte *blue)
+{
+  if (Serial.read() != '=')
+    return;
+  *red = Serial.parseInt();
+  if (Serial.read() != ',')
+  {
+    *green = *red;
+    *blue  = *red;
+  }
+  else
+  {
+    *green = Serial.parseInt();
+    if (Serial.read() == ',')
+      *blue = Serial.parseInt();
+    else
+      *blue = 0;
+  }
 }
 
 void loop()
 {
-  int pin, val;
-  int red, green, blue;
+  int pin, val, x1, y1, x2, y2;
+  byte red, green, blue;
+  char string[40];
   
   if (Serial.available())
   {
     switch (Serial.read())
     {
+      case '!': // Synchronize
+        Serial.println("!");
+        break;
       case '=': // Read a value
         switch (Serial.read())
         {
@@ -55,8 +83,8 @@ void loop()
             Serial.print(Esplora.readButton(4));Serial.print(",");
             Serial.println(Esplora.readJoystickSwitch());
             break;
-          case 'P': // Read potentiometer
-          case 'p':
+          case 'S': // Read slider
+          case 's':
             Serial.println(Esplora.readSlider());
             break;
           case 'L': // Read light sensor
@@ -74,6 +102,11 @@ void loop()
           case 'F': // Read temperature in Celcius
           case 'f':
             Serial.println(Esplora.readTemperature(DEGREES_F));
+            break;
+          case 'Z': // Read TFT screen size
+          case 'z':
+            Serial.print(EsploraTFT.width());Serial.print(",");
+            Serial.println(EsploraTFT.height());
             break;
         }
         break;
@@ -105,22 +138,7 @@ void loop()
         break;
       case 'L': // Write RGB LED
       case 'l':
-        if (Serial.read() != '=')
-          break;
-        red = Serial.parseInt();
-        if (Serial.read() != ',')
-        {
-          green = red;
-          blue  = red;
-        }
-        else
-        {
-          green = Serial.parseInt();
-          if (Serial.read() == ',')
-            blue = Serial.parseInt();
-          else
-            blue = 0;
-        }
+        readRGB(&red, &green, &blue);
         Esplora.writeRGB(red, green, blue);
         break;
       case 'T': // Write tone
@@ -132,6 +150,129 @@ void loop()
           Esplora.tone(val, Serial.parseInt());
         else
           Esplora.tone(val);
+        break;
+      case 'S': // call TFT screen functions
+      case 's':
+        switch (Serial.read())
+        {
+          case 'B': // background
+          case 'b':
+            readRGB(&red, &green, &blue);
+            EsploraTFT.background(blue, green, red);
+            break;
+          case 'F': // fill color
+          case 'f':
+            readRGB(&red, &green, &blue);
+            EsploraTFT.fill(blue, green, red);
+            break;
+          case 'S': // stroke color
+          case 's':
+            readRGB(&red, &green, &blue);
+            EsploraTFT.stroke(blue, green, red);
+            break;
+          case 'N': // no stroke/fill
+          case 'n':
+            switch (Serial.read())
+            {
+              case 'S': // no stroke
+              case 's':
+                EsploraTFT.noStroke();
+                break;
+              case 'F': // no fill
+              case 'f':
+                EsploraTFT.noFill();
+                break;
+            }
+            break;
+          case 'R': // rect
+          case 'r':
+            if (Serial.read() != '=')
+              break;
+            x1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            y1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            x2 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            y2 = Serial.parseInt();
+            EsploraTFT.rect(x1, y1, x2, y2);
+            break;
+          case 'L': // line
+          case 'l':
+            if (Serial.read() != '=')
+              break;
+            x1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            y1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            x2 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            y2 = Serial.parseInt();
+            EsploraTFT.line(x1, y1, x2, y2);
+            break;
+          case 'C': // circle
+          case 'c':
+            if (Serial.read() != '=')
+              break;
+            x1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            y1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            x2 = Serial.parseInt();
+            EsploraTFT.circle(x1, y1, x2);
+            break;
+          case 'P': // point
+          case 'p':
+            if (Serial.read() != '=')
+              break;
+            x1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            y1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            EsploraTFT.point(x1, y1);
+            break;
+          case 'T': // text
+          case 't':
+            if (Serial.read() != '=')
+              break;
+            if (Serial.read() != '\"')
+              break;
+            val = 0;
+            while ((pin = Serial.read()) != '\"')
+            {
+              string[val++] = pin;
+            }
+            string[val++] = '\0';
+            if (Serial.read() != ',')
+              break;
+            x1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            y1 = Serial.parseInt();
+            if (Serial.read() != ',')
+              break;
+            EsploraTFT.text(string, x1, y1);
+            break;
+          case 'Z': // text size
+          case 'z':
+            if (Serial.read() != '=')
+              break;
+            val = Serial.parseInt();
+            EsploraTFT.setTextSize(val);
+            break;
+          default:
+            Serial.println('?');
+        }
         break;
       case '\n':
         break;
