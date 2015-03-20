@@ -9,7 +9,7 @@ class Esplora:
             portName = Serial.list()[index] # Pick from serial port in list
         Esplora._port = Serial(this, portName, 57600)
         Esplora._port.clear()
-        Esplora._port.sync(5000)
+        Esplora.sync(5000)
 
     @staticmethod
     def close():
@@ -35,7 +35,7 @@ class Esplora:
             while Esplora._port.available() == 0:
                 if (millis() - m) > timeout:
                     return
-            serstr = Esplora._port.readLine(10)
+            serstr = Esplora.readLine(10)
 
     @staticmethod
     def readDigital(pin):
