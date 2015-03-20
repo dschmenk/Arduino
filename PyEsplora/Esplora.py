@@ -1,5 +1,6 @@
 import serial
 import serial.tools.list_ports
+import time
 
 class Esplora:
     _port = {}
@@ -10,10 +11,18 @@ class Esplora:
             ports = serial.tools.list_ports.comports()
             portname = ports[len(ports)-1][0]
         Esplora._port = serial.Serial(portname, 57600, timeout = 5)
+        Esplora._port.flushOutput()
+        Esplora._port.flushInput()
+        Esplora.sync(5)
     
     @staticmethod
     def close():
         Esplora._port.close()
+
+    @staticmethod
+    def sync(timeout=1):
+        Esplora._port.write("!\n")
+        Esplora._port.readline()
 
     @staticmethod
     def readDigital(pin):
@@ -54,6 +63,7 @@ class Esplora:
     def readJoystick():
         Esplora._port.write("=J\n")
         instr = Esplora._port.readline().rstrip().split(",")
+        Esplora.sync()
         return [int(instr[0]), int(instr[1])]
 
     @staticmethod
@@ -106,8 +116,7 @@ class Esplora:
         if blue < 0:
             blue = red
         Esplora._port.write("SB=%d,%d,%d\n" % (red, green, blue))
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftFill(red, green = -1, blue = -1):
@@ -116,8 +125,7 @@ class Esplora:
         if blue < 0:
             blue = red
         Esplora._port.write("SF=%d,%d,%d\n" % (red, green, blue))
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftStroke(red, green = -1, blue = -1):
@@ -126,47 +134,39 @@ class Esplora:
         if blue < 0:
             blue = red
         Esplora._port.write("SS=%d,%d,%d\n" % (red, green, blue))
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftNoFill():
         Esplora._port.write("SNF\n")
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftNoStroke():
         Esplora._port.write("SNS\n")
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftRect(xpos, ypos, width, height):
         Esplora._port.write("SR=%d,%d,%d,%d\n" % (xpos, ypos, width, height))
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftLine(x1, y1, x2, y2):
         Esplora._port.write("SL=%d,%d,%d,%d\n" % (x1, y1, x2, y2))
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftCircle(xpos, ypos, radius):
         Esplora._port.write("SC=%d,%d,%d\n" % (xpos, ypos, radius))
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftText(string, xpos, ypos):
         Esplora._port.write('ST="%s",%d,%d\n' % (string, xpos, ypos))
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
 
     @staticmethod
     def tftTextSize(size):
         Esplora._port.write('SZ=%d\n' % (size))
-        Esplora._port.write("!\n")
-        Esplora._port.readline()
+        Esplora.sync()
