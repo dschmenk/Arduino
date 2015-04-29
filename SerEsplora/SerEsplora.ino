@@ -16,7 +16,7 @@ void setup()
   EsploraTFT.begin();
 }
 
-void readRGB(byte *red, byte *green, byte *blue)
+void parseRGB(byte *red, byte *green, byte *blue)
 {
   if (Serial.read() != '=')
     return;
@@ -138,7 +138,7 @@ void loop()
         break;
       case 'L': // Write RGB LED
       case 'l':
-        readRGB(&red, &green, &blue);
+        parseRGB(&red, &green, &blue);
         Esplora.writeRGB(red, green, blue);
         break;
       case 'T': // Write tone
@@ -157,17 +157,17 @@ void loop()
         {
           case 'B': // background
           case 'b':
-            readRGB(&red, &green, &blue);
+            parseRGB(&red, &green, &blue);
             EsploraTFT.background(blue, green, red);
             break;
           case 'F': // fill color
           case 'f':
-            readRGB(&red, &green, &blue);
+            parseRGB(&red, &green, &blue);
             EsploraTFT.fill(blue, green, red);
             break;
           case 'S': // stroke color
           case 's':
-            readRGB(&red, &green, &blue);
+            parseRGB(&red, &green, &blue);
             EsploraTFT.stroke(blue, green, red);
             break;
           case 'N': // no stroke/fill
@@ -259,8 +259,6 @@ void loop()
             if (Serial.read() != ',')
               break;
             y1 = Serial.parseInt();
-            if (Serial.read() != ',')
-              break;
             EsploraTFT.text(string, x1, y1);
             break;
           case 'Z': // text size
