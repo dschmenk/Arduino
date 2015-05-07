@@ -1,3 +1,7 @@
+"""
+Use Esplora accelerometer to draw a box in the window.
+The Esplora slider will adjust the size of the box.
+"""
 add_library('serial')
 from Esplora_Processing import Esplora
 

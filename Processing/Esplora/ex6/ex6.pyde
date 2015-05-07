@@ -1,3 +1,9 @@
+"""
+Use Esplora joystick to draw a box in the window.
+The Esplora slider will adjust the size of the box.
+The Esplora joystick button clears the window.
+The Esplora button 1 exits the demo,.
+"""
 add_library('serial')
 from Esplora_Processing import Esplora
 

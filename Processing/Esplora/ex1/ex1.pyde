@@ -1,3 +1,6 @@
+"""
+PONG! Demo - draw the ball
+"""
 xBall = 50
 yBall = 10
 sizeBall = 6

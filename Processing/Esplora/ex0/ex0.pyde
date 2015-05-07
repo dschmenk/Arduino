@@ -1,3 +1,6 @@
+"""
+Simple demo to connect to Esplora and interact with slider.
+"""
 add_library('serial')
 from Esplora_Processing import Esplora
 

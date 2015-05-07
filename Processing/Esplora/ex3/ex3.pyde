@@ -1,3 +1,6 @@
+"""
+PONG! Demo - integrate paddle control with Esplora slider
+"""
 add_library('serial')
 from Esplora_Processing import Esplora
 

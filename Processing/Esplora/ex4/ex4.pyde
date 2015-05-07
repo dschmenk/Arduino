@@ -1,3 +1,6 @@
+"""
+PONG! Demo - bounce sound using Esplora buzzer
+"""
 add_library('serial')
 from Esplora_Processing import Esplora
 
