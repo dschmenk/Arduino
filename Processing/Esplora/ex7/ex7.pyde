@@ -4,19 +4,19 @@ Plot Esplora light, sound, and temperature in a scrolling window.
 add_library('serial')
 from Esplora_Processing import Esplora
 
-light = [128]
-sound = [128]
-temp  = [128]
+light = [0]
+sound = [0]
+temp  = [0]
 
 def setup():
     global light, sound, temp
     Esplora.open(Serial)
-    size(255,255)
+    size(400,300)
     x = 1
     while x < width:
-        light.append(128)
-        sound.append(128)
-        temp.append(128)
+        light.append(height/2)
+        sound.append(height/2)
+        temp.append(height/2)
         x = x + 1
     
 def draw():
@@ -27,11 +27,11 @@ def draw():
     sound.pop()
     temp.pop()
     # Map full light sensor range
-    bright = map(Esplora.readLightSensor(), 0, 1023, 255, 0)
+    bright = map(Esplora.readLightSensor(), 0, 1023, height - 1, 0)
     # Map full sound sensor range
-    loud = map(Esplora.readMicrophone(), 0, 695, 255, 0)
+    loud = map(Esplora.readMicrophone(), 0, 695, height - 1, 0)
     # Map room temperature range
-    hot = map(Esplora.readTempF(), 40, 100, 255, 0)
+    hot = map(Esplora.readTempF(), 40, 100, height - 1, 0)
     # Insert new value into beginning of lists
     light.insert(0, bright)
     sound.insert(0, loud)
