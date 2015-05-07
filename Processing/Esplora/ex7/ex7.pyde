@@ -1,9 +1,11 @@
 """
 Plot Esplora light, sound, and temperature in a scrolling window.
+Use Esplora slider to adjust update rate.
 """
 add_library('serial')
 from Esplora_Processing import Esplora
 
+# Esplora sensor data lists
 light = [0]
 sound = [0]
 temp  = [0]
@@ -11,7 +13,8 @@ temp  = [0]
 def setup():
     global light, sound, temp
     Esplora.open(Serial)
-    size(640,480)
+    size(640, 480) # Nice big window
+    # Initialize the data lists with middle-of-the-window values
     x = 1
     while x < width:
         light.append(height/2)
@@ -46,4 +49,5 @@ def draw():
         stroke(0, 0, 255) # Blue
         line(x - 1, light[x - 1], x, light[x])
         x = x + 1
-
+    # Use the slider to adjust the update rate between 30 to 1 per second
+    frameRate(map(Esplora.readSlider(), 0, 1023, 30, 1))
