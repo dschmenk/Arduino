@@ -11,7 +11,7 @@ temp  = [0]
 def setup():
     global light, sound, temp
     Esplora.open(Serial)
-    size(400,300)
+    size(640,480)
     x = 1
     while x < width:
         light.append(height/2)
