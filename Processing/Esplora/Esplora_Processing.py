@@ -1,3 +1,6 @@
+"""
+Interface to Esplora hardware for Processing.py examples.
+"""
 class Esplora:
     _port = {}
 
