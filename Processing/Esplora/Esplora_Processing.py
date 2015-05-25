@@ -1,13 +1,16 @@
+"""
+Interface to Esplora hardware for Processing.py examples.
+"""
 class Esplora:
     _port = {}
 
     @staticmethod
-    def open(Serial, index=-1):
+    def open(serports, index=-1):
         if index < 0:
-            portName = Serial.list()[len(Serial.list()) + index] # Pick from last serial port in list
+            portName = serports.list()[len(serports.list()) + index] # Pick from last serial port in list
         else:
-            portName = Serial.list()[index] # Pick from serial port in list
-        Esplora._port = Serial(this, portName, 57600)
+            portName = serports.list()[index] # Pick from serial port in list
+        Esplora._port = serports(this, portName, 57600)
         Esplora._port.clear()
         Esplora.sync(5000)
 
@@ -58,7 +61,7 @@ class Esplora:
         Esplora._port.write("D%d~%d\n" % (pin, value))
 
     @staticmethod
-    def writeRGB(red, green = -1, blue = -1):
+    def writeLED(red, green = -1, blue = -1):
         if green < 0:
             green = red
         if blue < 0:
