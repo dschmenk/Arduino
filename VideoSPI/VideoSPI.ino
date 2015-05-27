@@ -1,7 +1,8 @@
-   /*
- * Output NTSC video using the UART in SPI master mode.
+/*
+ * Output NTSC video using the UART in SPI master mode on Arduino Uno.
  * 40x25 character buffer is rasterized and scanned out in real-time.
  * 320X200 pixels out of 1000 RAM bytes and 1K Flash character ROM.
+ * VIDEO on pin 1 (470 ohm resistor), SYNC on pin 9 (1K ohm resistor).
  *
  * Blatantly using code from:
  * TVout                 - http://playground.arduino.cc/Main/TVout
@@ -32,10 +33,10 @@
 // video = UART SPI TX
 //
 #define PORT_VID     PORTD
-#define	DDR_VID      DDRD
-#define	VID_PIN       1
-#define XCK0_DDR  DDRD
-#define XCK0             4
+#define	DDR_VID     DDRD
+#define	VID_PIN     1
+#define XCK0_DDR     DDRD
+#define XCK0         4
 //
 // sync = OC1A
 //
@@ -79,20 +80,20 @@ void setup(void)
 {
   cli();
   UBRR0 = 0; // must be zero before enabling the transmitter
-  XCK0_DDR |= _BV(XCK0); // set XCK pin as output to enable master mode
-  UCSR0C = _BV (UMSEL00) | _BV (UMSEL01);  // SPI master mode
-  DDR_VID |= _BV(VID_PIN);
-  DDR_SYNC |= _BV(SYNC_PIN);
-  PORT_VID &= ~_BV(VID_PIN);
+  XCK0_DDR  |= _BV(XCK0); // set XCK pin as output to enable master mode
+  UCSR0C     = _BV (UMSEL00) | _BV (UMSEL01);  // SPI master mode
+  DDR_VID   |= _BV(VID_PIN);
+  DDR_SYNC  |= _BV(SYNC_PIN);
+  PORT_VID  &= ~_BV(VID_PIN);
   PORT_SYNC |= _BV(SYNC_PIN);
-  TCCR1A = _BV(COM1A1) | _BV(COM1A0) | _BV(WGM11); // inverted fast pwm mode on timer 2
-  TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS10);
-  ICR1 = _NTSC_CYCLES_SCANLINE;
-  OCR1A = _CYCLES_HSYNC;
-  OCR1B = _NTSC_CYCLES_OUTPUT_START - 79;
-  TIMSK1 = _BV(OCIE1B);
-  TIMSK0 = 0; // turn timer0 off!
-  SMCR = _BV(SE); // allow IDLE sleep mode
+  TCCR1A     = _BV(COM1A1) | _BV(COM1A0) | _BV(WGM11); // inverted fast pwm mode on timer 2
+  TCCR1B     = _BV(WGM13) | _BV(WGM12) | _BV(CS10);
+  ICR1       = _NTSC_CYCLES_SCANLINE;
+  OCR1A      = _CYCLES_HSYNC;
+  OCR1B      = _NTSC_CYCLES_OUTPUT_START - 79;
+  TIMSK1     = _BV(OCIE1B);
+  TIMSK0     = 0; // turn timer0 off!
+  SMCR       = _BV(SE); // allow IDLE sleep mode
   sei();
   //
   // Clear the video buffer and print out sample text
@@ -130,8 +131,8 @@ void blank_line(void)
   }
   else if ( scanline == _NTSC_LINE_MID - (VID_HEIGHT*CELL_HEIGHT)/2)
   {
-    TIMSK1 = _BV(OCIE1A) | _BV(OCIE1B);
-    videoptr = videomem;
+    TIMSK1       = _BV(OCIE1A) | _BV(OCIE1B);
+    videoptr     = videomem;
     line_handler = &active_line;
   }
   else if (scanline > _NTSC_LINE_FRAME)
