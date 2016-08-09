@@ -2,10 +2,17 @@
 // BIT BANGED SPI OVER GAMEPORT
 //
 BYTE[] SPIXFER
-BYTE[] = $8D, $5A, $C0 // STA $C05A
-BYTE[] = $A0, $00      // LDY #0
-BYTE[] = $B5, $C0      // LDA $C0,X
-BYTE[] = $10, $01      // BPL +01
+BYTE[] = $8D, $5A, $C0 // STA $C05A   ENABLE SLAVE
+BYTE[] = $A0, $00      // LDY #0      ASSUME MSB IS ZERO
+BYTE[] = $B5, $C0      // LDA $C0,X   GET ARGUMENT
+BYTE[] = $10, $01      // BPL +01     CHECK MSB
+BYTE[] = $C8           // INY         IT'S A ONE
+BYTE[] = $99, $58, $C0 // STA $C058,Y WRITE BIT 7
+BYTE[] = $8D, $40, $C0 // STA $C040   CLOCK
+BYTE[] = $A0, $00      // LDY #0      DOING THIS HERE GIVES ARDUINO TIME TO OUTPUT BIT 7
+BYTE[] = $0E, $61, $C0 // ASL $C061   READ BIT 7 INTO CARRY
+BYTE[] = $2A           // ROL         ROTATE INTO ACC
+BYTE[] = $10, $01      // BPL +01     REPEAT FOR ALL BITS
 BYTE[] = $C8           // INY
 BYTE[] = $99, $58, $C0 // STA $C058,Y
 BYTE[] = $8D, $40, $C0 // STA $C040
@@ -51,17 +58,10 @@ BYTE[] = $10, $01      // BPL +01
 BYTE[] = $C8           // INY
 BYTE[] = $99, $58, $C0 // STA $C058,Y
 BYTE[] = $8D, $40, $C0 // STA $C040
-BYTE[] = $A0, $00      // LDY #0
-BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $8D, $5B, $C0 // STA $C05B     DISABLE SLAVE
+BYTE[] = $0E, $61, $C0 // ASL $C061     YES, THIS SHOULD BE DONE BEFORE DISABLE ;-)
 BYTE[] = $2A           // ROL
-BYTE[] = $10, $01      // BPL +01
-BYTE[] = $C8           // INY
-BYTE[] = $99, $58, $C0 // STA $C058,Y
-BYTE[] = $8D, $40, $C0 // STA $C040
-BYTE[] = $8D, $5B, $C0 // STA $C05A
-BYTE[] = $0E, $61, $C0 // ASL $C061
-BYTE[] = $2A           // ROL
-BYTE[] = $95, $C0      // STA $C0,X
+BYTE[] = $95, $C0      // STA $C0,X     SAVE RETURN PARAMETER
 BYTE[] = $60           // RTS
 
 BYTE SPIDATA
