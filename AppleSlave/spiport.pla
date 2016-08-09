@@ -1,0 +1,83 @@
+//
+// BIT BANGED SPI OVER GAMEPORT
+//
+BYTE[] SPIXFER
+BYTE[] = $8D, $5A, $C0 // STA $C05A
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $B5, $C0      // LDA $C0,X
+BYTE[] = $C9, $80      // CMP #$80
+BYTE[] = $90, $01      // BCC +01
+BYTE[] = $C8           // INY
+BYTE[] = $99, $58, $C0 // STA $C058,Y
+BYTE[] = $8D, $40, $C0 // STA $C040
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $2A           // ROL
+BYTE[] = $10, $01      // BPL +01
+BYTE[] = $C8           // INY
+BYTE[] = $99, $58, $C0 // STA $C058,Y
+BYTE[] = $8D, $40, $C0 // STA $C040
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $2A           // ROL
+BYTE[] = $10, $01      // BPL +01
+BYTE[] = $C8           // INY
+BYTE[] = $99, $58, $C0 // STA $C058,Y
+BYTE[] = $8D, $40, $C0 // STA $C040
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $2A           // ROL
+BYTE[] = $10, $01      // BPL +01
+BYTE[] = $C8           // INY
+BYTE[] = $99, $58, $C0 // STA $C058,Y
+BYTE[] = $8D, $40, $C0 // STA $C040
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $2A           // ROL
+BYTE[] = $10, $01      // BPL +01
+BYTE[] = $C8           // INY
+BYTE[] = $99, $58, $C0 // STA $C058,Y
+BYTE[] = $8D, $40, $C0 // STA $C040
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $2A           // ROL
+BYTE[] = $10, $01      // BPL +01
+BYTE[] = $C8           // INY
+BYTE[] = $99, $58, $C0 // STA $C058,Y
+BYTE[] = $8D, $40, $C0 // STA $C040
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $2A           // ROL
+BYTE[] = $10, $01      // BPL +01
+BYTE[] = $C8           // INY
+BYTE[] = $99, $58, $C0 // STA $C058,Y
+BYTE[] = $8D, $40, $C0 // STA $C040
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $2A           // ROL
+BYTE[] = $10, $01      // BPL +01
+BYTE[] = $C8           // INY
+BYTE[] = $99, $58, $C0 // STA $C058,Y
+BYTE[] = $8D, $40, $C0 // STA $C040
+BYTE[] = $A0, $00      // LDY #0
+BYTE[] = $0E, $61, $C0 // ASL $C061
+BYTE[] = $2A           // ROL
+BYTE[] = $8D, $5B, $C0 // STA $C05A
+BYTE[] = $95, $C0      // STA $C0,X
+BYTE[] = $60           // RTS
+
+BYTE SPIDATA
+
+DEF SPIRESET
+  RETURN ^$C05B
+END
+
+SPIRESET
+REPEAT
+  IF ^$C000 > 127
+    ^$C010
+    SPIDATA = ^$C000
+    PUTC((@SPIXFER)(SPIDATA))
+  FIN
+UNTIL SPIDATA == 27
+^$C010
