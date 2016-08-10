@@ -178,6 +178,7 @@ void loop(void)
         break;
       case SPI_CMD_HW:
         spiWriteByte(HW_MODEL_UNO , SPI_CMD_TIMEOUT);
+        spiReady();
         break;
       case SPI_CMD_PINMODE:
         pin  = spiReadByte(SPI_CMD_TIMEOUT, SLAVE_READY);
@@ -214,10 +215,12 @@ void loop(void)
       case SPI_CMD_SERAVAIL:
         data = Serial.available();
         spiWriteByte(data, SPI_DATA_TIMEOUT);
+        spiReady();
         break;
       case SPI_CMD_SERREAD:
         data = Serial.read();
         spiWriteByte(data, SPI_DATA_TIMEOUT);
+        spiReady();
         break;
       case SPI_CMD_SERWRITE:
         data = spiReadByte(SPI_CMD_TIMEOUT, SLAVE_READY);
