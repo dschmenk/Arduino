@@ -42,7 +42,7 @@ const int SPI_CMD_SERWRITE = 11;
  */
 const int SPI_CMD_TIMEOUT  = 1000;
 const int SPI_DATA_TIMEOUT = 10000;
-const int SPI_DELAY_USEC = 10;
+const int SPI_TIMEOUT_USEC = 10;
 /*
  * Arduino models
  */
@@ -71,6 +71,7 @@ void setup(void)
 //
 // Shift in/out serial data
 //
+const int    SPI_CLK_TIMEOUT = 0xFF;
 void spiXfer(void)
 {
   byte outPort, spiSR;
@@ -78,32 +79,39 @@ void spiXfer(void)
   
   outPort = PORTD & 0x7F;
   spiSR   = spiAvail ? SLAVE_BUSY : spiOutput;
-  timeout = 0xFF; while (PIND & 0x40 && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (PIND & 0x40 && timeout--);
   PORTD   = outPort | (spiSR & 0x80);
   spiSR   = (spiSR << 1) | (PINB & 1);
-  timeout = 0xFF; while (PIND & 0x40 && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (!(PIND & 0x40) && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (PIND & 0x40 && timeout--);
   PORTD   = outPort | (spiSR & 0x80);
   spiSR   = (spiSR << 1) | (PINB & 1);
-  timeout = 0xFF; while (PIND & 0x40 && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (!(PIND & 0x40) && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (PIND & 0x40 && timeout--);
   PORTD   = outPort | (spiSR & 0x80);
   spiSR   = (spiSR << 1) | (PINB & 1);
-  timeout = 0xFF; while (PIND & 0x40 && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (!(PIND & 0x40) && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (PIND & 0x40 && timeout--);
   PORTD   = outPort | (spiSR & 0x80);
   spiSR   = (spiSR << 1) | (PINB & 1);
-  timeout = 0xFF; while (PIND & 0x40 && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (!(PIND & 0x40) && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (PIND & 0x40 && timeout--);
   PORTD   = outPort | (spiSR & 0x80);
   spiSR   = (spiSR << 1) | (PINB & 1);
-  timeout = 0xFF; while (PIND & 0x40 && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (!(PIND & 0x40) && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (PIND & 0x40 && timeout--);
   PORTD   = outPort | (spiSR & 0x80);
   spiSR   = (spiSR << 1) | (PINB & 1);
-  timeout = 0xFF; while (PIND & 0x40 && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (!(PIND & 0x40) && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (PIND & 0x40 && timeout--);
   PORTD   = outPort | (spiSR & 0x80);
   spiSR   = (spiSR << 1) | (PINB & 1);
-  timeout = 0xFF; while (PIND & 0x40 && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (!(PIND & 0x40) && timeout--);
+  timeout = SPI_CLK_TIMEOUT; while (PIND & 0x40 && timeout--);
   PORTD   = outPort | (spiSR & 0x80);
   spiSR   = (spiSR << 1) | (PINB & 1);
-  if (!spiAvail)
-  {
+   if (!spiAvail)
+   {
     spiAvail  = true;
     spiInput  = spiSR;
   }
@@ -123,7 +131,7 @@ int spiReadByte(int timeout, int nextOut)
       spiAvail  = false;
       return readByte;
     }
-    delayMicroseconds(SPI_DELAY_USEC); 
+    delayMicroseconds(SPI_TIMEOUT_USEC); 
   } while (timeout--);
   return SPI_ERR_TIMEOUT;
 }
@@ -143,7 +151,7 @@ int spiWriteByte(byte val, int timeout)
       spiAvail = false;
       return readByte;
     }
-    delayMicroseconds(SPI_DELAY_USEC); 
+    delayMicroseconds(SPI_TIMEOUT_USEC); 
   }
   return SPI_ERR_TIMEOUT;
 }
