@@ -1,14 +1,8 @@
 /*
  * Operate on FAT files on SD card from Apple II
  */
-#include <SPI.h>
-#include <FreeStack.h>
-#include <MinimumSerial.h>
 #include <SdFat.h>
-#include <SdFatConfig.h>
-#include <SdFatUtil.h>
-#include <SystemInclude.h>
-const int sdSSpin = 4;
+const int sdSSpin = 4; // 4 for SD card on ethernet shield, 10 for SD card data logger shield
 /*
  * Bit bang SPI slave mode for Apple II
  */
@@ -77,8 +71,8 @@ const int SLAVE_CMD_SDEXISTS = 37;
 /*
  * How long to wait in usec before timing out
  */
-const int SLAVE_CMD_TIMEOUT  = 10000;
-const int SLAVE_DATA_TIMEOUT = 100000;
+const int SLAVE_CMD_TIMEOUT  = 10000UL;
+const int SLAVE_DATA_TIMEOUT = 100000UL;
 const int SLAVE_DELAY        = 0xFF;
 /*
  * Arduino models
@@ -113,9 +107,9 @@ void setup(void)
   pinMode(MISOpin, OUTPUT);
   digitalWrite(MISOpin, LOW);
   Serial.begin(9600);
-  attachInterrupt(digitalPinToInterrupt(SSpin), spiXfer, FALLING);
-  //EICRA = 0x0A; // Falling edge triggered IRQ
-  //EIMSK = 0x02; // INT1 enabled
+  //attachInterrupt(digitalPinToInterrupt(SSpin), spiXfer, FALLING);
+  EICRA = 0x0A; // Falling edge triggered IRQ
+  EIMSK = 0x02; // INT1 enabled
   spiReady();
 }
 //
@@ -124,7 +118,7 @@ void setup(void)
 const int    SLAVE_CLK_TIMEOUT = 0xFF;
 #define SCLK_FALL for(timeout=SLAVE_CLK_TIMEOUT;(PIND&0x40)&&timeout--;)
 #define SCLK_RISE for(timeout=SLAVE_CLK_TIMEOUT;!(PIND&0x40)&&timeout--;)
-//ISR(INT1_vect) {spiXfer();}
+ISR(INT1_vect) {spiXfer();EIFR=0x02;}
 void spiXfer(void)
 {
   byte outPort, spiSR;
@@ -176,7 +170,7 @@ void spiXfer(void)
  */
 int spiReadByte(unsigned long timeout, int nextOut)
 {
-  unsigned long time = micros();
+  unsigned long start = micros();
   byte readByte;
   
   do {
@@ -187,16 +181,16 @@ int spiReadByte(unsigned long timeout, int nextOut)
       spiAvail  = false;
       return readByte;
     }
-  } while (micros() - time < timeout);
+  } while (micros() - start < timeout);
   return SLAVE_ERR_TIMEOUT;
 }
-int spiWriteByte(byte val, unsigned long timeout)
+int spiWriteByte(byte writeByte, unsigned long timeout)
 {
-  unsigned long time = micros();
+  unsigned long start = micros();
   byte readByte;
   
   noInterrupts();
-  spiOutput = val;
+  spiOutput = writeByte;
   spiAvail  = false;
   interrupts();
   do
@@ -207,7 +201,7 @@ int spiWriteByte(byte val, unsigned long timeout)
       spiAvail = false;
       return readByte;
     }
-  } while (micros() - time < timeout);
+  } while (micros() - start < timeout);
   return SLAVE_ERR_TIMEOUT;
 }
 void spiBusy(void)
@@ -233,9 +227,7 @@ void loop(void)
     switch (cmd)
     {
       case SLAVE_CMD_NOP:
-        spiBusy();
-        Serial.println("Cmd: NOP");
-        spiReady();
+        //Serial.println("Cmd: NOP");
         break;
       case SLAVE_CMD_ECHO:
         data = spiReadByte(SLAVE_CMD_TIMEOUT, SLAVE_READY);
@@ -280,11 +272,13 @@ void loop(void)
       case SLAVE_CMD_SERMODE:
         break;
       case SLAVE_CMD_SERAVAIL:
+        spiBusy();
         data = Serial.available();
         spiWriteByte(data, SLAVE_DATA_TIMEOUT);
         spiReady();
         break;
       case SLAVE_CMD_SERREAD:
+        spiBusy();
         data = Serial.read();
         spiWriteByte(data, SLAVE_DATA_TIMEOUT);
         spiReady();
@@ -355,9 +349,9 @@ void loop(void)
           spiXfer();
           *pBuf = spiInput;
         }
+        EIFR = 0x02; // clear pending interrupt
         spiOutput = SLAVE_READY;
         spiAvail  = false;
-        EIFR = 0x02; // clear pending interrupt
         interrupts();
 #endif
         break;
@@ -413,7 +407,7 @@ void loop(void)
          if (sdFile.openNext(sdFat.vwd(), O_READ) && sdFile.getName((char *)xferBuf, 255))
           count = strlen((char *)xferBuf);
         spiWriteByte(count, SLAVE_DATA_TIMEOUT);
-        spiReady();
+         spiReady();
         break;
       case SLAVE_CMD_SDOPEN:
         data = spiReadByte(SLAVE_CMD_TIMEOUT, SLAVE_BUSY);
@@ -479,4 +473,4 @@ void loop(void)
         break; 
     }
   }
- }
+}
