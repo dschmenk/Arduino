@@ -1,6 +1,8 @@
 /*
  * Operate on FAT files on SD card from Apple II
  */
+#define FAST_BUF_XFER   // Buffer transfer with interrupts OFF in a polling loop
+#define TRISTATE_OUTPUT // Tristate output when not asserted
 #include <SdFat.h>
 const int sdSSpin = 4; // 4 for SD card on ethernet shield, 10 for SD card data logger shield
 /*
@@ -104,12 +106,17 @@ void setup(void)
   pinMode(SCKpin,  INPUT);
   pinMode(SSpin,   INPUT);
   pinMode(MOSIpin, INPUT);
+#ifdef TRISTATE_OUTPUT
+  pinMode(MISOpin, INPUT);
+#else
   pinMode(MISOpin, OUTPUT);
+#endif
   digitalWrite(MISOpin, LOW);
   Serial.begin(9600);
   //attachInterrupt(digitalPinToInterrupt(SSpin), spiXfer, FALLING);
   EICRA = 0x0A; // Falling edge triggered IRQ
   EIMSK = 0x02; // INT1 enabled
+  sdInit = sdFat.begin(sdSSpin, SPI_FULL_SPEED);
   spiReady();
 }
 //
@@ -118,7 +125,20 @@ void setup(void)
 const int    SLAVE_CLK_TIMEOUT = 0xFF;
 #define SCLK_FALL for(timeout=SLAVE_CLK_TIMEOUT;(PIND&0x40)&&timeout--;)
 #define SCLK_RISE for(timeout=SLAVE_CLK_TIMEOUT;!(PIND&0x40)&&timeout--;)
-ISR(INT1_vect) {spiXfer();EIFR=0x02;}
+ISR(INT1_vect)
+{
+#ifdef TRISTATE_OUTPUT
+  DDRD   |= 0x80; // Enable output 
+#endif
+  spiXfer();
+  EIFR=0x02;
+#ifdef TRISTATE_OUTPUT
+  DDRD  &= 0x7F; // Disable output
+  PORTD &= 0x7F; // Tri-state
+#else
+  PORTD |= 0x80; // SLAVE_BUSY
+#endif 
+}
 void spiXfer(void)
 {
   byte outPort, spiSR;
@@ -207,7 +227,9 @@ int spiWriteByte(byte writeByte, unsigned long timeout)
 void spiBusy(void)
 {
   spiOutput = SLAVE_BUSY;
-  PORTD |= 0x80; // Set output high so master will read FF if slave busy w/ ints off
+#ifndef TRISTATE
+  PORTD |= 0x80; // SLAVE_BUSY
+#endif
 }
 void spiReady(void)
 {
@@ -296,12 +318,11 @@ void loop(void)
         /*
          * Uno goes out to lunch for awhile during back-to-back xfers. Not sure why
          */
-#if 0
-        for (pBuf = xferBuf; count--; pBuf++)
-          if (spiWriteByte(*pBuf, SLAVE_DATA_TIMEOUT) < 0)
-            break;
-#else
+#ifdef FAST_BUF_XFER
         noInterrupts();
+#ifdef TRISTATE_OUTPUT
+        DDRD |= 0x80; // Enable output 
+#endif
         for (pBuf = xferBuf; count--; pBuf++)
         {
           unsigned int timeout;
@@ -312,7 +333,17 @@ void loop(void)
           spiXfer();
         }
         EIFR = 0x02; // clear pending interrupt
+#ifdef TRISTATE_OUTPUT
+        DDRD  &= 0x7F; // Disable output
+        PORTD &= 0x7F; // Tri-state
+#else
+        PORTD |= 0x80; // SLAVE_BUSY
+#endif 
         interrupts();
+#else
+        for (pBuf = xferBuf; count--; pBuf++)
+          if (spiWriteByte(*pBuf, SLAVE_DATA_TIMEOUT) < 0)
+            break;
 #endif
         spiReady();
         break;
@@ -326,19 +357,11 @@ void loop(void)
         /*
          * Uno goes out to lunch for awhile during back-to-back xfers. Not sure why
          */
-#if 0
-        for (pBuf = xferBuf; count--; pBuf++)
-        {
-          data = spiReadByte(SLAVE_DATA_TIMEOUT, SLAVE_READY);
-          if (data < 0)
-          {
-            spiReady();
-            break;
-          }
-          *pBuf = data;
-        }
-#else
+#ifdef FAST_BUF_XFER
         noInterrupts();
+#ifdef TRISTATE_OUTPUT
+        DDRD |= 0x80; // Enable output 
+#endif
         for (pBuf = xferBuf; count--; pBuf++)
         {
           unsigned int timeout;
@@ -350,9 +373,26 @@ void loop(void)
           *pBuf = spiInput;
         }
         EIFR = 0x02; // clear pending interrupt
+#ifdef TRISTATE_OUTPUT
+        DDRD  &= 0x7F; // Disable output
+        PORTD &= 0x7F; // Tri-state
+#else
+        PORTD |= 0x80; // SLAVE_BUSY
+#endif 
         spiOutput = SLAVE_READY;
         spiAvail  = false;
         interrupts();
+#else
+        for (pBuf = xferBuf; count--; pBuf++)
+        {
+          data = spiReadByte(SLAVE_DATA_TIMEOUT, SLAVE_READY);
+          if (data < 0)
+          {
+            spiReady();
+            break;
+          }
+          *pBuf = data;
+        }
 #endif
         break;
       case SLAVE_CMD_SDINIT:
