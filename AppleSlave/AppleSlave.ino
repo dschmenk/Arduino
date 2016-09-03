@@ -1,10 +1,19 @@
 /*
  * Operate on FAT files on SD card from Apple II
  */
+#define RTCLIB // Include RTC library?
 #define FAST_BUF_XFER   // Buffer transfer with interrupts OFF in a polling loop
 #define TRISTATE_OUTPUT // Tristate output when not asserted
 #include <SdFat.h>
-const int sdSSpin = 4; // 4 for SD card on ethernet shield, 10 for SD card data logger shield
+const int sdSSpin = 10; // 4 for SD card on ethernet shield, 10 for SD card data logger shield
+/*
+ * Access RTC on data logger shield
+ */
+#ifdef RTCLIB
+#include <Wire.h>
+#include <RTClib.h>
+RTC_DS1307 rtc;
+#endif
 /*
  * Bit bang SPI slave mode for Apple II
  */
@@ -70,6 +79,8 @@ const int SLAVE_CMD_SDTRUNC  = 34;
 const int SLAVE_CMD_SDISDIR  = 35;
 const int SLAVE_CMD_SDISFILE = 36;
 const int SLAVE_CMD_SDEXISTS = 37;
+const int SLAVE_CMD_RTC      = 38;
+const int SLAVE_CMD_RTCUPDATE= 39;
 /*
  * How long to wait in usec before timing out
  */
@@ -118,6 +129,15 @@ void setup(void)
   EIMSK = 0x02; // INT1 enabled
   sdInit = sdFat.begin(sdSSpin, SPI_FULL_SPEED);
   spiReady();
+
+#ifdef RTCLIB
+  if (rtc.begin()) {
+    if (! rtc.isrunning()) {
+      // following line sets the RTC to the date & time this sketch was compiled
+      rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    }
+  }
+#endif
 }
 //
 // Shift in/out serial data
@@ -508,6 +528,35 @@ void loop(void)
         break;
       case SLAVE_CMD_SDEXISTS:
         break;
+#ifdef RTCLIB
+      case SLAVE_CMD_RTC:
+        {
+          spiBusy();
+          DateTime now = rtc.now();
+          if (spiWriteByte(now.year() - 2000, SLAVE_DATA_TIMEOUT) >= 0)
+          if (spiWriteByte(now.month(),       SLAVE_DATA_TIMEOUT) >= 0)
+          if (spiWriteByte(now.day(),         SLAVE_DATA_TIMEOUT) >= 0)
+          if (spiWriteByte(now.hour(),        SLAVE_DATA_TIMEOUT) >= 0)
+          if (spiWriteByte(now.minute(),      SLAVE_DATA_TIMEOUT) >= 0)
+            spiWriteByte(now.second(),      SLAVE_DATA_TIMEOUT);
+          spiReady();
+        }
+        break;
+      case SLAVE_CMD_RTCUPDATE:
+        {
+          byte year, month, day, hour, minute, second;
+
+          if ((year   = spiReadByte(SLAVE_DATA_TIMEOUT, SLAVE_READY)) >= 0)
+          if ((month  = spiReadByte(SLAVE_DATA_TIMEOUT, SLAVE_READY)) >= 0)
+          if ((day    = spiReadByte(SLAVE_DATA_TIMEOUT, SLAVE_READY)) >= 0)
+          if ((hour   = spiReadByte(SLAVE_DATA_TIMEOUT, SLAVE_READY)) >= 0)
+          if ((minute = spiReadByte(SLAVE_DATA_TIMEOUT, SLAVE_READY)) >= 0)
+          if ((second = spiReadByte(SLAVE_DATA_TIMEOUT, SLAVE_BUSY)) >= 0)
+            rtc.adjust(DateTime(year+2000, month, day, hour, minute, second));
+          spiReady();
+        }
+        break;       
+#endif
       default:
         Serial.print("Huh? Cmd:");Serial.println(cmd);
         break; 
