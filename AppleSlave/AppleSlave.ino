@@ -84,8 +84,8 @@ const int SLAVE_CMD_RTCUPDATE= 39;
 /*
  * How long to wait in usec before timing out
  */
-const int SLAVE_CMD_TIMEOUT  = 10000UL;
-const int SLAVE_DATA_TIMEOUT = 100000UL;
+const unsigned long SLAVE_CMD_TIMEOUT  = 10000UL;
+const unsigned long SLAVE_DATA_TIMEOUT = 100000UL;
 const int SLAVE_DELAY        = 0xFF;
 /*
  * Arduino models
