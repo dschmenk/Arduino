@@ -1,16 +1,16 @@
 # Arduino
 Arduino, Python, and Processing library source code for tethering the Esplora to a PC running Python/Processing.
 
-##Esplora Processing Interface
+## Esplora Processing Interface
 Download the Esplora package for Processing
 1. Open http://github.com/dschmenk/Arduino in Safari.
 2. Click on 'Download ZIP' on right side of screen
 3. Drag the Downloads/Arduino-master folder to the Documents/Processing folder.
 
-##Using libraries and modules
+## Using libraries and modules
 Start a new sketch, add the serial port library, import the Esplora module and see how easy it is to use. From the Processing menu, click through "Sketch/Add File..." and add the "Arduino-master/Processing/Esplora/Esplora_Processing.py" file.
 
-##A simple example
+## A simple example
 ```
 add_library('serial')
 from Esplora_Processing import Esplora
@@ -21,10 +21,10 @@ def setup():
 def draw():
     background(map(Esplora.readSlider(), 1023, 0, 0, 255))
 ```
-##Programming the Esplora firmware
+## Programming the Esplora firmware
 If your Esplora needs to be programmed with the serial protocol firmware for use with Python, open the SerEsplora project in the Arduino IDE and update the Esplora.
 
-##Basic API:
+## Basic API:
 	Esplora.open(Serial): Open Esplora connection for use
 		return: None
 
@@ -62,7 +62,7 @@ If your Esplora needs to be programmed with the serial protocol firmware for use
 		return: -100..200
 
 
-##Low-Level API:
+## Low-Level API:
 	Esplora.readDigital(pin): Read the value on a digital pin
 		return: 0..1
 
@@ -76,7 +76,7 @@ If your Esplora needs to be programmed with the serial protocol firmware for use
 		return: None
 
 
-##TFT API (for optional Esplora TFT screen):
+## TFT API (for optional Esplora TFT screen):
 	Esplora.tftSize(): Read the size of the TFT display
 		return: [tftWidth, tftHeight]
 
