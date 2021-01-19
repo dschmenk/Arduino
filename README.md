@@ -1,6 +1,9 @@
 # Arduino
 Arduino, Python, and Processing library source code for tethering the Esplora to a PC running Python/Processing.
 
+## SPI Video
+Use secondary SPI interface as video shift register: https://youtu.be/vEfm9Pm9MkI
+
 ## Esplora Processing Interface
 Download the Esplora package for Processing
 1. Open http://github.com/dschmenk/Arduino in Safari.
